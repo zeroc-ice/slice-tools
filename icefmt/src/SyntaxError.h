@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-#ifndef ICE_FMT_SYNTAX_ERROR_H
-#define ICE_FMT_SYNTAX_ERROR_H
+#ifndef ICEFMT_SYNTAX_ERROR_H
+#define ICEFMT_SYNTAX_ERROR_H
 
 #include <stdexcept>
 #include <string>

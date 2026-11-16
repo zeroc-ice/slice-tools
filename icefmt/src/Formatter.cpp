@@ -320,9 +320,9 @@ namespace
 
     // The comments that leave definitions as written: 'ignore' the one it leads, and 'off' the ones from
     // the one it leads to the one before the one that 'on' leads, or to the end of their body or file.
-    constexpr string_view ignoreComment = "// ice-fmt: ignore";
-    constexpr string_view offComment = "// ice-fmt: off";
-    constexpr string_view onComment = "// ice-fmt: on";
+    constexpr string_view ignoreComment = "// icefmt: ignore";
+    constexpr string_view offComment = "// icefmt: off";
+    constexpr string_view onComment = "// icefmt: on";
 
     // Returns the index of the last comment 'marker' among the comments and preprocessor directives that have lines of
     // their own before a node, if it is one of them.
@@ -795,9 +795,7 @@ IceFmt::formatSlice(string_view text)
     }
 
     auto ignoresFile = [](const Lexeme& lexeme)
-    {
-        return lexeme.kind == TokenKind::LineComment && withoutTrailingBlanks(lexeme.text) == "// ice-fmt: ignore-file";
-    };
+    { return lexeme.kind == TokenKind::LineComment && withoutTrailingBlanks(lexeme.text) == "// icefmt: ignore-file"; };
     if (ranges::any_of(scan(text), ignoresFile))
     {
         return string{file};

@@ -154,7 +154,7 @@ main(int argc, char* argv[])
         }
         if (argument == "-v" || argument == "--version")
         {
-            cout << ICE_FMT_VERSION << endl;
+            cout << ICEFMT_VERSION << endl;
             return EXIT_SUCCESS;
         }
 

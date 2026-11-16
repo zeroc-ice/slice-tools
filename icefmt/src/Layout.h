@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-#ifndef ICE_FMT_LAYOUT_H
-#define ICE_FMT_LAYOUT_H
+#ifndef ICEFMT_LAYOUT_H
+#define ICEFMT_LAYOUT_H
 
 #include <concepts>
 #include <memory>

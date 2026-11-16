@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-#ifndef ICE_FMT_SYNTAX_PARSER_H
-#define ICE_FMT_SYNTAX_PARSER_H
+#ifndef ICEFMT_SYNTAX_PARSER_H
+#define ICEFMT_SYNTAX_PARSER_H
 
 #include "SyntaxError.h"
 #include "SyntaxScanner.h"

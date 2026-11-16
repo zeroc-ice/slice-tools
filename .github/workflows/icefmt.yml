@@ -1,4 +1,4 @@
-name: ice-fmt
+name: icefmt
 
 on:
   push:
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-ice-fmt:
+  build-icefmt:
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -26,20 +26,20 @@ jobs:
           - os: macos-26
             target: x86_64-apple-darwin
             cmake-args: -DCMAKE_OSX_ARCHITECTURES=x86_64
-            bin: ice-fmt
+            bin: icefmt
           - os: macos-26
             target: aarch64-apple-darwin
             cmake-args: -DCMAKE_OSX_ARCHITECTURES=arm64
-            bin: ice-fmt
+            bin: icefmt
           - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-            bin: ice-fmt
+            bin: icefmt
           - os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
-            bin: ice-fmt
+            bin: icefmt
           - os: windows-2022
             target: x86_64-pc-windows-msvc
-            bin: Release/ice-fmt.exe
+            bin: Release/icefmt.exe
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -49,20 +49,20 @@ jobs:
 
       - name: Configure
         run: >
-          cmake -S ice-fmt -B ice-fmt/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          cmake -S icefmt -B icefmt/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           ${{ matrix.cmake-args }}
 
       - name: Build
-        run: cmake --build ice-fmt/build --config Release
+        run: cmake --build icefmt/build --config Release
 
       - name: Test
-        run: ctest --test-dir ice-fmt/build --build-config Release --output-on-failure
+        run: ctest --test-dir icefmt/build --build-config Release --output-on-failure
 
-      - name: Upload ice-fmt
+      - name: Upload icefmt
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ice-fmt_${{ matrix.target }}
-          path: ./ice-fmt/build/${{ matrix.bin }}
+          name: icefmt_${{ matrix.target }}
+          path: ./icefmt/build/${{ matrix.bin }}
           if-no-files-found: error
 
   clang:
@@ -79,15 +79,15 @@ jobs:
 
       - name: Check the format
         run: |
-          "$(brew --prefix llvm)/bin/clang-format" --dry-run --Werror ice-fmt/src/*.cpp ice-fmt/src/*.h
+          "$(brew --prefix llvm)/bin/clang-format" --dry-run --Werror icefmt/src/*.cpp icefmt/src/*.h
 
       # clang-tidy reads the headers the compiler uses, so the build uses Homebrew's clang and names the SDK.
       - name: Configure with clang-tidy
         run: >
-          cmake -S ice-fmt -B ice-fmt/build
+          cmake -S icefmt -B icefmt/build
           "-DCMAKE_CXX_COMPILER=$(brew --prefix llvm)/bin/clang++"
           "-DCMAKE_OSX_SYSROOT=$(xcrun --show-sdk-path)"
           "-DCMAKE_CXX_CLANG_TIDY=$(brew --prefix llvm)/bin/clang-tidy"
 
       - name: Build
-        run: cmake --build ice-fmt/build
+        run: cmake --build icefmt/build

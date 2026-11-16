@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-#ifndef ICE_FMT_SYNTAX_SCANNER_H
-#define ICE_FMT_SYNTAX_SCANNER_H
+#ifndef ICEFMT_SYNTAX_SCANNER_H
+#define ICEFMT_SYNTAX_SCANNER_H
 
 #include <string_view>
 #include <vector>
