@@ -4,6 +4,7 @@ Editor tools for the Slice interface definition language: `.ice` files for [Ice]
 
 | Directory                                      | Description                                                                                  |
 |------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [icefmt](icefmt)                               | The formatter for `.ice` files, written in C++.                                              |
 | [slice-language-server](slice-language-server) | The Slice language server for `.slice` files, written in Rust.                               |
 | [vscode-extension](vscode-extension)           | The [Slice extension for Visual Studio Code][marketplace], which bundles the language server. |
 
@@ -12,6 +13,7 @@ GitHub highlights `.ice` files with the grammar in [vscode-extension/syntaxes](v
 ## Building
 
 [vscode-extension/INSTALLATION.md](vscode-extension/INSTALLATION.md) describes how to build the language server and package the extension.
+[icefmt/README.md](icefmt/README.md) describes how to build the formatter.
 
 ## Contributing
 
