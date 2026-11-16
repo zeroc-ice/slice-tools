@@ -2,10 +2,10 @@
 
 Editor tools for the Slice interface definition language: `.ice` files for [Ice] and `.slice` files for [IceRPC].
 
-| Directory                            | Description                                                                                  |
-|--------------------------------------|----------------------------------------------------------------------------------------------|
-| [slice-lsp](slice-lsp)               | The Slice language server for `.slice` files, written in Rust.                               |
-| [vscode-extension](vscode-extension) | The [Slice extension for Visual Studio Code][marketplace], which bundles the language server. |
+| Directory                                      | Description                                                                                  |
+|------------------------------------------------|----------------------------------------------------------------------------------------------|
+| [slice-language-server](slice-language-server) | The Slice language server for `.slice` files, written in Rust.                               |
+| [vscode-extension](vscode-extension)           | The [Slice extension for Visual Studio Code][marketplace], which bundles the language server. |
 
 GitHub highlights `.ice` files with the grammar in [vscode-extension/syntaxes](vscode-extension/syntaxes), through [Linguist].
 

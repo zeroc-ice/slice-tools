@@ -14,7 +14,7 @@
       "outFiles": ["${workspaceFolder}/vscode-extension/client/out/**/*.js"],
       "preLaunchTask": "Watch Client",
       "env": {
-        "SERVER_PATH": "${workspaceFolder}/slice-lsp/target/",
+        "SERVER_PATH": "${workspaceFolder}/slice-language-server/target/",
         "BUILT_IN_SLICE_PATH": "${workspaceFolder}/vscode-extension/slice/"
       }
     }
