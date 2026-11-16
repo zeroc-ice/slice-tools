@@ -119,7 +119,7 @@ impl SliceLanguageServer {
         }
 
         // If there are multiple diagnostics for the same span, that have the same message, deduplicate them.
-        diagnostics.dedup_by(|d1, d2| d1.span() == d2.span() && d1.message() == d2.message());
+        diagnostics.dedup_by(|d1, d2| d1.snippet == d2.snippet && d1.message == d2.message);
 
         // Group the diagnostics by file since diagnostics are published per file and diagnostic.span contains the URL.
         // Process diagnostics and update publish_map.
@@ -128,7 +128,7 @@ impl SliceLanguageServer {
         for diagnostic in spanless_diagnostics {
             show_popup(
                 &self.client_handle,
-                diagnostic.message(),
+                diagnostic.message,
                 notifications::MessageType::Error,
             )
             .await;

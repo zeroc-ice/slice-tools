@@ -4,9 +4,9 @@ use crate::slice_project::SliceProject;
 use crate::utils::{convert_slice_path_to_uri, span_to_range};
 use crate::{notifications, show_popup};
 
-use slicec::diagnostics::{Diagnostic, DiagnosticLevel, Note};
+use slicec::diagnostics::{AnnotatedDiagnostic, AnnotatedNote, DiagnosticLevel};
 use std::collections::HashMap;
-use tower_lsp::lsp_types::{DiagnosticRelatedInformation, Location, NumberOrString, Url};
+use tower_lsp::lsp_types::{DiagnosticRelatedInformation, DiagnosticSeverity, Location, NumberOrString, Url};
 use tower_lsp::Client;
 
 /// Publishes diagnostics for all files in the provided project.
@@ -15,7 +15,7 @@ use tower_lsp::Client;
 /// and then publishes these diagnostics to the LSP client.
 pub async fn publish_diagnostics_for_project(
     client_handle: &Client,
-    diagnostics: Vec<Diagnostic>,
+    diagnostics: Vec<AnnotatedDiagnostic>,
     project: &mut SliceProject,
 ) {
     // Initialize a map to hold diagnostics grouped by file (URL)
@@ -29,12 +29,7 @@ pub async fn publish_diagnostics_for_project(
     // Process the diagnostics and populate the map.
     let spanless_diagnostics = process_diagnostics(diagnostics, &mut map);
     for diagnostic in spanless_diagnostics {
-        show_popup(
-            client_handle,
-            diagnostic.message(),
-            notifications::MessageType::Error,
-        )
-        .await;
+        show_popup(client_handle, diagnostic.message, notifications::MessageType::Error).await;
     }
 
     // Publish the diagnostics for each file
@@ -45,83 +40,55 @@ pub async fn publish_diagnostics_for_project(
 
 /// Processes a list of diagnostics and updates the publish map with LSP-compatible diagnostics.
 ///
-/// This function filters out any diagnostics that do not have a span or cannot be converted
-/// to an LSP diagnostic. It then updates the given publish map with the processed diagnostics.
-/// Any diagnostics that do not have a span are returned for further processing.
+/// Allowed lints are dropped. Any diagnostics that do not have a span are returned for further processing.
 pub fn process_diagnostics(
-    diagnostics: Vec<slicec::diagnostics::Diagnostic>,
+    diagnostics: Vec<AnnotatedDiagnostic>,
     publish_map: &mut HashMap<Url, Vec<tower_lsp::lsp_types::Diagnostic>>,
-) -> Vec<slicec::diagnostics::Diagnostic> {
+) -> Vec<AnnotatedDiagnostic> {
     let mut spanless_diagnostics = Vec::new();
-    diagnostics
-        .into_iter()
-        .filter_map(|diagnostic| {
-            let span = diagnostic.span().cloned();
-            match try_into_lsp_diagnostic(diagnostic) {
-                Ok(lsp_diagnostic) => {
-                    // The empty span case is handled by the `try_into_lsp_diagnostic` function.
-                    let file = span
-                        .expect("If the span was empty, try_into_lsp_diagnostic should have hit the error case")
-                        .file;
-                    let uri = convert_slice_path_to_uri(file)?;
-                    Some((uri, lsp_diagnostic))
-                }
-                Err(diagnostic) => {
-                    spanless_diagnostics.push(diagnostic);
-                    None
-                }
-            }
-        })
-        .for_each(|(uri, lsp_diagnostic)| {
-            publish_map.entry(uri).or_default().push(lsp_diagnostic);
-        });
-    spanless_diagnostics
-}
+    for diagnostic in diagnostics {
+        let severity = match diagnostic.level {
+            DiagnosticLevel::Error => DiagnosticSeverity::ERROR,
+            DiagnosticLevel::Warning => DiagnosticSeverity::WARNING,
+            DiagnosticLevel::Info => DiagnosticSeverity::INFORMATION,
+            DiagnosticLevel::Allowed => continue,
+        };
 
-// A helper function that converts a slicec diagnostic into an lsp diagnostics
-#[allow(clippy::result_large_err)]
-pub fn try_into_lsp_diagnostic(
-    diagnostic: Diagnostic,
-) -> Result<tower_lsp::lsp_types::Diagnostic, slicec::diagnostics::Diagnostic> {
-    let severity = match diagnostic.level() {
-        DiagnosticLevel::Error => Some(tower_lsp::lsp_types::DiagnosticSeverity::ERROR),
-        DiagnosticLevel::Warning => Some(tower_lsp::lsp_types::DiagnosticSeverity::WARNING),
-        DiagnosticLevel::Allowed => None,
-    };
+        let Some(span) = diagnostic.snippet.as_ref().map(|snippet| snippet.span.clone()) else {
+            spanless_diagnostics.push(diagnostic);
+            continue;
+        };
+        let Some(uri) = convert_slice_path_to_uri(&span.file) else {
+            continue;
+        };
 
-    // Map the spans to ranges, if span is none, return the slicec diagnostic
-    let range = match diagnostic.span() {
-        Some(span) => span_to_range(span.clone()),
-        None => return Err(diagnostic),
-    };
-
-    let message = diagnostic.message();
-    let related_information: Option<Vec<DiagnosticRelatedInformation>> = Some(
-        diagnostic
-            .notes()
+        let related_information = diagnostic
+            .notes
             .iter()
             .filter_map(try_into_lsp_diagnostic_related_information)
-            .collect(),
-    );
+            .collect();
 
-    Ok(tower_lsp::lsp_types::Diagnostic {
-        range,
-        severity,
-        code: Some(NumberOrString::String(diagnostic.code().to_owned())),
-        code_description: None,
-        source: Some("slicec".to_owned()),
-        message,
-        related_information,
-        tags: None,
-        data: None,
-    })
+        let lsp_diagnostic = tower_lsp::lsp_types::Diagnostic {
+            range: span_to_range(span),
+            severity: Some(severity),
+            code: Some(NumberOrString::String(diagnostic.code)),
+            code_description: None,
+            source: Some("slicec".to_owned()),
+            message: diagnostic.message,
+            related_information: Some(related_information),
+            tags: None,
+            data: None,
+        };
+        publish_map.entry(uri).or_default().push(lsp_diagnostic);
+    }
+    spanless_diagnostics
 }
 
 // A helper function that converts a slicec note into an lsp diagnostic related information
 fn try_into_lsp_diagnostic_related_information(
-    note: &Note,
+    note: &AnnotatedNote,
 ) -> Option<tower_lsp::lsp_types::DiagnosticRelatedInformation> {
-    let span = note.span.clone()?;
+    let span = note.snippet.as_ref()?.span.clone();
     let uri = convert_slice_path_to_uri(&span.file)?;
     let range = span_to_range(span);
 
