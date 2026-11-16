@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::notifications::{self, ShowNotification, ShowNotificationParams};
 use crate::slice_project::SliceProject;
 use crate::utils::{convert_slice_path_to_uri, span_to_range};
-use crate::{notifications, show_popup};
 
 use slicec::diagnostics::{AnnotatedDiagnostic, AnnotatedNote, DiagnosticLevel};
 use std::collections::HashMap;
@@ -27,9 +27,9 @@ pub async fn publish_diagnostics_for_project(
         .collect::<HashMap<Url, Vec<tower_lsp::lsp_types::Diagnostic>>>();
 
     // Process the diagnostics and populate the map.
-    let spanless_diagnostics = process_diagnostics(diagnostics, &mut map);
-    for diagnostic in spanless_diagnostics {
-        show_popup(client_handle, diagnostic.message, notifications::MessageType::Error).await;
+    let popups = process_diagnostics(diagnostics, &mut map);
+    for popup in popups {
+        client_handle.send_notification::<ShowNotification>(popup).await;
     }
 
     // Publish the diagnostics for each file
@@ -40,22 +40,25 @@ pub async fn publish_diagnostics_for_project(
 
 /// Processes a list of diagnostics and updates the publish map with LSP-compatible diagnostics.
 ///
-/// Allowed lints are dropped. Any diagnostics that do not have a span are returned for further processing.
+/// Allowed lints are dropped. Diagnostics that do not have a span are returned as popup notifications instead.
 pub fn process_diagnostics(
     diagnostics: Vec<AnnotatedDiagnostic>,
     publish_map: &mut HashMap<Url, Vec<tower_lsp::lsp_types::Diagnostic>>,
-) -> Vec<AnnotatedDiagnostic> {
-    let mut spanless_diagnostics = Vec::new();
+) -> Vec<ShowNotificationParams> {
+    let mut popups = Vec::new();
     for diagnostic in diagnostics {
-        let severity = match diagnostic.level {
-            DiagnosticLevel::Error => DiagnosticSeverity::ERROR,
-            DiagnosticLevel::Warning => DiagnosticSeverity::WARNING,
-            DiagnosticLevel::Info => DiagnosticSeverity::INFORMATION,
+        let (severity, message_type) = match diagnostic.level {
+            DiagnosticLevel::Error => (DiagnosticSeverity::ERROR, notifications::MessageType::Error),
+            DiagnosticLevel::Warning => (DiagnosticSeverity::WARNING, notifications::MessageType::Warning),
+            DiagnosticLevel::Info => (DiagnosticSeverity::INFORMATION, notifications::MessageType::Info),
             DiagnosticLevel::Allowed => continue,
         };
 
         let Some(span) = diagnostic.snippet.as_ref().map(|snippet| snippet.span.clone()) else {
-            spanless_diagnostics.push(diagnostic);
+            popups.push(ShowNotificationParams {
+                message: diagnostic.message,
+                message_type,
+            });
             continue;
         };
         let Some(uri) = convert_slice_path_to_uri(&span.file) else {
@@ -81,7 +84,7 @@ pub fn process_diagnostics(
         };
         publish_map.entry(uri).or_default().push(lsp_diagnostic);
     }
-    spanless_diagnostics
+    popups
 }
 
 // A helper function that converts a slicec note into an lsp diagnostic related information
