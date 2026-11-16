@@ -1,6 +1,6 @@
 # Slice Tools
 
-Editor tools for the Slice interface definition language: `.ice` files for [Ice] and `.slice` files for [IceRPC].
+Tools for the Slice interface definition language: `.ice` files for [Ice] and `.slice` files for [IceRPC].
 
 | Directory                                      | Description                                                                                  |
 |------------------------------------------------|----------------------------------------------------------------------------------------------|
