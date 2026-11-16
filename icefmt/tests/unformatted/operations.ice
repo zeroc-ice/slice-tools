@@ -15,10 +15,12 @@ module Demo
         idempotent Ice::StringSeq listQueuedOnTray(string user, Color color, bool doubleSided,
             optional(1) string tray);
 
-        // The metadata of an operation goes on the line above it.
+        // The metadata of an operation stays on its line or on the line above, as written.
+        ["amd"]   void pause(string user);
         ["amd"]
-        void pause(string user);
+        void restart( string user );
 
+        // The metadata moves to the line above an operation that doesn't fit after it.
         ["amd"] idempotent Ice::StringSeq listQueuedDocuments(string user, Color color, bool doubleSided, optional(1) int max);
 
         // An operation that doesn't fit moves its exception specification to its own line.

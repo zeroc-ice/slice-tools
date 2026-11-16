@@ -3,7 +3,7 @@
 
 ["cs:namespace:Example"] module Demo
 {
-    // The metadata of a definition goes on the line above it.
+    // The metadata of a module, class, interface, exception, struct, or enum goes on the line above it.
     ["deprecated"] struct Old { int x; }
     ["deprecated"] enum Older
     {

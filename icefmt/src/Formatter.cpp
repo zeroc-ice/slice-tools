@@ -453,9 +453,9 @@ namespace
     }
 
     // Lays out the 'count' metadata lists that lead a node, then 'rest', which is what follows them. As rustfmt does
-    // with attributes, several lists go one per line, and the declaration of a container or an operation starts the
-    // line after its metadata. So does a node that the author put there. Any other node follows its metadata list on
-    // the same line when it fits there with the list on one line.
+    // with attributes, several lists go one per line, and the declaration of a container starts the line after its
+    // metadata. So does a node that the author put there. Any other node follows its metadata list on the same line
+    // when it fits there with the list on one line.
     Layout afterLeadingMetadata(const Node& node, size_t count, Layout rest)
     {
         if (count == 0)
@@ -477,7 +477,7 @@ namespace
 
         // The metadata list shares a group with the node, so a list that breaks puts the node on the next line.
         const Node& list = node.children.front();
-        bool ownLine = declaresContainer(node) || node.kind == NodeKind::Operation || startsLine(node.children[1]);
+        bool ownLine = declaresContainer(node) || startsLine(node.children[1]);
         return concat(
             beforeText(firstToken(list)),
             group(concat(directives(list), ownLine ? hardline() : line(), std::move(rest))));
