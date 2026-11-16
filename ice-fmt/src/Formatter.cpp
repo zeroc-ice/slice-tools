@@ -161,9 +161,9 @@ namespace
     // Returns a line of a comment or preprocessor directive without the blanks and the carriage return that end it.
     string_view withoutTrailingBlanks(string_view line) { return line.substr(0, line.find_last_not_of(" \t\r") + 1); }
 
-    // Splits a comment or preprocessor directive into its lines. A line of a comment after the first one keeps the
-    // indentation it has relative to the first one. A line of a preprocessor directive after the first one stays as
-    // written: the preprocessor joins it to the line before it, with the blanks that start it.
+    // Splits a comment or preprocessor directive into its lines. A line of a comment after the first one drops the
+    // indentation of the first one, and keeps the rest of its own as written. A line of a preprocessor directive after
+    // the first one stays as written: the preprocessor joins it to the line before it, with the blanks that start it.
     vector<string> splitLines(const Trivia& trivia)
     {
         bool asWritten = trivia.kind == TokenKind::PreprocessorDirective;
@@ -181,9 +181,7 @@ namespace
             }
             else
             {
-                string indented(indentation > column ? indentation - column : 0, ' ');
-                indented += current.substr(indentation);
-                lines.push_back(std::move(indented));
+                lines.emplace_back(current.substr(min(indentation, column)));
             }
 
             if (end == string_view::npos)
@@ -326,12 +324,12 @@ namespace
     constexpr string_view offComment = "// ice-fmt: off";
     constexpr string_view onComment = "// ice-fmt: on";
 
-    // Returns the index of the comment 'marker' among the comments and preprocessor directives that have lines of their
-    // own before a node, if it is one of them.
+    // Returns the index of the last comment 'marker' among the comments and preprocessor directives that have lines of
+    // their own before a node, if it is one of them.
     optional<size_t> markerIndex(const Node& node, string_view marker)
     {
         const vector<Trivia>& leading = firstToken(node).leading;
-        for (size_t i = 0; i < leading.size(); ++i)
+        for (size_t i = leading.size(); i-- > 0;)
         {
             if (leading[i].ownLine && withoutTrailingBlanks(leading[i].text) == marker)
             {
@@ -377,10 +375,20 @@ namespace
     {
         size_t next = first + 1;
         optional<size_t> marker = markerIndex(children[first], ignoreComment);
-        if (!marker)
+        if (marker)
         {
+            // The comma that follows an enumerator stays with it.
+            if (next < end && isToken(children[next], TokenKind::Comma))
+            {
+                ++next;
+            }
+        }
+        else
+        {
+            // An 'on' after the 'off' turns formatting back on before the child.
             marker = markerIndex(children[first], offComment);
-            if (!marker)
+            optional<size_t> on = markerIndex(children[first], onComment);
+            if (!marker || (on && *on > *marker))
             {
                 return nullopt;
             }
