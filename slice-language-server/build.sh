@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Cargo and TARGET_DIR resolve from the crate folder.
+cd "$(dirname "$0")" || exit 1
+
 # An array of the target triples
 TARGETS=(
   "aarch64-apple-darwin"
