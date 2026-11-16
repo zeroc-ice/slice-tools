@@ -10,10 +10,9 @@ module Demo
         // A line of 120 columns fits.
         idempotent Ice::StringSeq listQueuedOnTray(string user, Color color, bool doubleSided, optional(1) string tray);
 
-        // The metadata of an operation stays on its line or on the line above, as written.
+        // The metadata of an operation goes on the operation's line when both fit there.
         ["amd"] void pause(string user);
-        ["amd"]
-        void restart(string user);
+        ["amd"] void restart(string user);
 
         // The metadata moves to the line above an operation that doesn't fit after it.
         ["amd"]
