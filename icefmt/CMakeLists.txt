@@ -26,6 +26,11 @@ else()
     target_compile_options(icefmt PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion -Wpedantic)
 endif()
 
+if(MINGW)
+    # MinGW calls wmain only when the executable is linked with its Unicode startup code.
+    target_link_options(icefmt PRIVATE -municode)
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # The executable runs on any distribution, whatever its C and C++ libraries.
     target_link_options(icefmt PRIVATE -static)
