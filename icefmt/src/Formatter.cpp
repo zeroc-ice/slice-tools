@@ -452,10 +452,9 @@ namespace
         return indent(concat(line(), print(node.children.front()), group(indent(concat(std::move(names))))));
     }
 
-    // Lays out the 'count' metadata lists that lead a node, then 'rest', which is what follows them. As rustfmt does
-    // with attributes, several lists go one per line, and the declaration of a container starts the line after its
-    // metadata. So does a node that the author put there, other than an operation. Any other node follows its metadata
-    // list on the same line when it fits there with the list on one line.
+    // Lays out the 'count' metadata lists that lead a node, then 'rest', which is what follows them. The declaration of
+    // a container starts the line after its metadata, and so does a node that the author put there, other than an
+    // operation. Any other node follows its metadata on the same line when it fits there with each list on one line.
     Layout afterLeadingMetadata(const Node& node, size_t count, Layout rest)
     {
         if (count == 0)
@@ -463,25 +462,20 @@ namespace
             return rest;
         }
 
-        if (count > 1)
+        // The metadata lists share a group with the node, so each list has a line of its own when the node starts the
+        // next line.
+        vector<Layout> parts;
+        parts.push_back(directives(node.children.front()));
+        for (size_t i = 1; i < count; ++i)
         {
-            vector<Layout> parts;
-            for (size_t i = 0; i < count; ++i)
-            {
-                parts.push_back(metadata(node.children[i]));
-                parts.push_back(hardline());
-            }
-            parts.push_back(std::move(rest));
-            return concat(std::move(parts));
+            parts.push_back(line());
+            parts.push_back(metadata(node.children[i]));
         }
-
-        // The metadata list shares a group with the node, so a list that breaks puts the node on the next line.
-        const Node& list = node.children.front();
-        bool keepsLineBreak = node.kind != NodeKind::Operation && startsLine(node.children[1]);
+        bool keepsLineBreak = node.kind != NodeKind::Operation && startsLine(node.children[count]);
         bool ownLine = declaresContainer(node) || keepsLineBreak;
-        return concat(
-            beforeText(firstToken(list)),
-            group(concat(directives(list), ownLine ? hardline() : line(), std::move(rest))));
+        parts.push_back(ownLine ? hardline() : line());
+        parts.push_back(std::move(rest));
+        return concat(beforeText(firstToken(node.children.front())), group(concat(std::move(parts))));
     }
 
     // An operation that doesn't fit on one line is broken in two steps, the second one only when the first one is not

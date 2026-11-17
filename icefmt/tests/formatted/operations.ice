@@ -13,10 +13,15 @@ module Demo
         // The metadata of an operation goes on the operation's line when both fit there.
         ["amd"] void pause(string user);
         ["amd"] void restart(string user);
+        ["amd"] ["cpp:const"] void reset(string user);
 
-        // The metadata moves to the line above an operation that doesn't fit after it.
+        // The metadata moves above an operation that doesn't fit after it, each list to its own line.
         ["amd"]
         idempotent Ice::StringSeq listQueuedDocuments(string user, Color color, bool doubleSided, optional(1) int max);
+
+        ["amd"]
+        ["cpp:const"]
+        idempotent Ice::StringSeq listHeldDocuments(string user, Color color, bool doubleSided, optional(1) int max);
 
         // An operation that doesn't fit moves its exception specification to its own line.
         void cancel(string user, Ice::StringSeq documents, bool notifyOwner, out Ice::StringSeq cancelled)

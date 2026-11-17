@@ -4,11 +4,12 @@
 ["cs:namespace:Example"]
 module Demo
 {
-    // The metadata of a module, class, interface, exception, struct, or enum goes on the line above it.
+    // The metadata of a module, class, interface, exception, struct, or enum goes above it, each list on its own line.
     ["deprecated"]
     struct Old { int x; }
 
     ["deprecated"]
+    ["cs:identifier:Elder"]
     enum Older
     {
         First
@@ -55,23 +56,18 @@ module Demo
         ["java:type:java.util.LinkedHashMap<String, String[]>:java.util.LinkedHashMap<String, String[]>"]
         optional(1) Index history;
 
-        // Several metadata lists go one per line, and what they lead starts the next line.
+        // Several metadata lists go one per line when what they lead starts the next line.
+        ["deprecated"] ["cpp:type:wstring"] string nickname;
         ["deprecated"]
         ["cpp:type:wstring"]
-        string nickname;
+        string alias;
     }
 
     interface Printer
     {
         void print(["cpp:array"] Ice::ByteSeq bytes, ["cpp:type:wstring"] string name);
 
-        ["amd"]
-        ["cpp:const"]
-        void wait(
-            int count,
-            ["deprecated"]
-            ["cpp:type:wstring"]
-            string reason);
+        ["amd"] ["cpp:const"] void wait(int count, ["deprecated"] ["cpp:type:wstring"] string reason);
 
         void printAll(
             ["java:type:java.util.LinkedHashMap<String, String[]>:java.util.LinkedHashMap<String, String[]>"]
