@@ -186,7 +186,8 @@ namespace
                      .startsLine = firstOnLine,
                      .blankLineBefore = blankLineBefore,
                      .leading = std::move(leading),
-                     .trailing = {}});
+                     .trailing = {},
+                     .docCommentAfter = {}});
                 leading.clear();
                 continue;
             }
@@ -215,6 +216,7 @@ namespace
                     tokens.back().trailing.push_back(trivia);
                     break;
                 case Placement::AboveLine:
+                    tokens.back().docCommentAfter = trivia.text;
                     moveAboveLine(tokens, joinedLine, trivia);
                     break;
             }

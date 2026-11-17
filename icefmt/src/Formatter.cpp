@@ -345,12 +345,22 @@ namespace
     {
         const Token& token = firstToken(first);
         bool afterMarker = marker + 1 < token.leading.size();
-        const char* start = afterMarker ? token.leading[marker + 1].text.data() : token.text.data();
-        int column = afterMarker ? token.leading[marker + 1].column : token.column;
         bool blankLine = afterMarker ? token.leading[marker + 1].blankLineBefore : token.blankLineBefore;
 
+        // The text starts with the first comment after the marker. When that comment is a doc comment that the parser
+        // moved from the end of the token's line, the text starts with the token.
+        bool startsWithComment = afterMarker && token.leading[marker + 1].text.data() < token.text.data();
+        const char* start = startsWithComment ? token.leading[marker + 1].text.data() : token.text.data();
+        int column = startsWithComment ? token.leading[marker + 1].column : token.column;
+
+        // The text ends with the last comment on the line of the last token.
         const Token& lastOfLast = lastToken(last);
         string_view end = lastOfLast.trailing.empty() ? lastOfLast.text : lastOfLast.trailing.back().text;
+        string_view docComment = lastOfLast.docCommentAfter;
+        if (!docComment.empty() && docComment.data() > end.data())
+        {
+            end = docComment;
+        }
         string_view written{start, static_cast<size_t>(end.data() + end.size() - start)};
 
         vector<Trivia> trivia{token.leading.begin(), token.leading.begin() + static_cast<ptrdiff_t>(marker) + 1};

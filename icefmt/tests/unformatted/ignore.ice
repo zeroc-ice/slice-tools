@@ -61,6 +61,25 @@ module Demo
     /// A size.
     ["deprecated"]   struct  Size  {  int  width;  int  height;  };   // kept
 
+    // A doc comment after text left as written, on its last line, stays there.
+    struct Margins
+    {
+        // icefmt: ignore
+        int   left;   /// The left margin.
+        // icefmt: off
+        int   top;   /// The top margin.
+        int   bottom;   /// The bottom margin.
+        // icefmt: on
+        int   right;   /// The right margin.
+    }
+
+    enum Side
+    {
+        // icefmt: ignore
+        Left  =  1,   /// The left side.
+        Right  =  2
+    }
+
     struct Indented
     {
             // The lines keep the indentation they have beyond the first one, a tab included.

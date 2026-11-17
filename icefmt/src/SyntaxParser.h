@@ -55,6 +55,10 @@ namespace IceFmt
 
         /// The comments that follow this token on its line, and end that line.
         std::vector<Trivia> trailing;
+
+        /// The last doc comment that follows this token on its line, which leads the first token of that line. Empty
+        /// when there is none.
+        std::string_view docCommentAfter;
     };
 
     enum class NodeKind
