@@ -16,7 +16,7 @@ use tower_lsp::Client;
 pub async fn publish_diagnostics_for_project(
     client_handle: &Client,
     diagnostics: Vec<AnnotatedDiagnostic>,
-    project: &mut SliceProject,
+    project: &SliceProject,
 ) {
     // Initialize a map to hold diagnostics grouped by file (URL)
     let mut map = project
