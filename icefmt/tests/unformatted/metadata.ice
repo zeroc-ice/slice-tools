@@ -10,10 +10,11 @@
         First
     }
 
-    // So does the metadata of a forward declaration.
+    // The metadata of a forward declaration, sequence, dictionary, or constant stays on its line or on the line above,
+    // as written.
     ["deprecated"] class Forward;
-
-    // The metadata of a sequence, dictionary, or constant stays on its line or on the line above, as written.
+    ["deprecated"]
+    interface Later;
     ["deprecated"] sequence<Old> OldSeq;
     ["deprecated"]
     const int Oldest = 1;
