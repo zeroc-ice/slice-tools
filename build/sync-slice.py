@@ -39,7 +39,6 @@ from __future__ import annotations
 
 import argparse
 import filecmp
-import os
 import shutil
 import subprocess
 import sys
@@ -65,7 +64,7 @@ def collect_files(base_dir: Path, patterns: list[str]) -> list[str]:
     for pattern in patterns:
         for path in base_dir.glob(pattern):
             if path.is_file():
-                matches.add(str(path.relative_to(base_dir)))
+                matches.add(path.relative_to(base_dir).as_posix())
     return sorted(matches)
 
 
@@ -114,7 +113,7 @@ def sync(sources: dict, repo_root: Path) -> bool:
             dest = config["dest"]
             source_dir, files = fetch_source(name, config, tmp_base)
             for relpath in files:
-                dest_rel = os.path.join(dest, relpath)
+                dest_rel = f"{dest}/{relpath}"
                 if dest_rel in expected:
                     print(f"  Warning: {dest_rel} matched by multiple sources", file=sys.stderr)
                 expected[dest_rel] = source_dir / relpath
@@ -131,7 +130,7 @@ def sync(sources: dict, repo_root: Path) -> bool:
                 continue
             for ext in ("*.ice", "*.slice"):
                 for existing in abs_dest.rglob(ext):
-                    rel = str(existing.relative_to(repo_root))
+                    rel = existing.relative_to(repo_root).as_posix()
                     if rel not in expected:
                         print(f"  Removing stale: {rel}")
                         existing.unlink()
@@ -157,7 +156,7 @@ def verify(sources: dict, repo_root: Path) -> bool:
             dest = config["dest"]
             source_dir, files = fetch_source(name, config, tmp_base)
             for relpath in files:
-                dest_rel = os.path.join(dest, relpath)
+                dest_rel = f"{dest}/{relpath}"
                 expected[dest_rel] = source_dir / relpath
 
                 dst = repo_root / dest_rel
@@ -174,7 +173,7 @@ def verify(sources: dict, repo_root: Path) -> bool:
                 continue
             for ext in ("*.ice", "*.slice"):
                 for existing in abs_dest.rglob(ext):
-                    rel = str(existing.relative_to(repo_root))
+                    rel = existing.relative_to(repo_root).as_posix()
                     if rel not in expected:
                         issues.append(f"Extra: {rel}")
 
