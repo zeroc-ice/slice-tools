@@ -231,11 +231,10 @@ impl LanguageServer for SliceLanguageServer {
             files
                 .get(&file_path)
                 .and_then(|file| get_definition_span(file, position))
-                .map(|location| {
-                    GotoDefinitionResponse::Scalar(Location {
-                        uri: uri.clone(),
-                        range: span_to_range(location),
-                    })
+                .and_then(|span| {
+                    let uri = convert_slice_path_to_uri(&span.file)?;
+                    let range = span_to_range(span);
+                    Some(GotoDefinitionResponse::Scalar(Location { uri, range }))
                 })
         }))
     }
@@ -273,5 +272,55 @@ impl LanguageServer for SliceLanguageServer {
         if let Some(file_path) = url_to_sanitized_file_path(&params.text_document.uri) {
             self.handle_file_change(&file_path).await;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[tokio::test]
+    async fn goto_definition_returns_the_file_that_defines_the_type() {
+        // Arrange
+        let workspace = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("cross_file");
+        let (service, _) = LspService::new(SliceLanguageServer::new);
+        let server = service.inner();
+        let initialize_params = InitializeParams {
+            root_uri: Some(Url::from_file_path(&workspace).unwrap()),
+            // `builtInSlicePath` is required, but unused when `addWellKnownTypes` is false.
+            initialization_options: Some(json!({
+                "builtInSlicePath": "",
+                "configurations": [{ "addWellKnownTypes": false }],
+            })),
+            ..Default::default()
+        };
+        server.initialize(initialize_params).await.unwrap();
+        server.initialized(InitializedParams {}).await;
+
+        // The `Point` in `center: Point`.
+        let params = GotoDefinitionParams {
+            text_document_position_params: TextDocumentPositionParams {
+                text_document: TextDocumentIdentifier {
+                    uri: Url::from_file_path(workspace.join("Circle.slice")).unwrap(),
+                },
+                position: Position::new(5, 14),
+            },
+            work_done_progress_params: WorkDoneProgressParams::default(),
+            partial_result_params: PartialResultParams::default(),
+        };
+
+        // Act
+        let response = server.goto_definition(params).await.unwrap();
+
+        // Assert
+        let expected = GotoDefinitionResponse::Scalar(Location {
+            uri: Url::from_file_path(workspace.join("Point.slice")).unwrap(),
+            range: Range::new(Position::new(4, 7), Position::new(4, 12)),
+        });
+        assert_eq!(response, Some(expected));
     }
 }
