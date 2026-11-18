@@ -1,22 +1,16 @@
-# IceRPC Slice files
+# Built-in Slice Files
 
-This directory provides [Slice] definitions shared by all IceRPC implementations.
+The Slice files in this directory ship with the extension as its built-in Slice definitions. They are vendored from
+[icerpc-slice](https://github.com/icerpc/icerpc-slice), so change them there first and then sync them to this
+repository.
 
-| Subdirectory       | Description                                                                        |
-|--------------------|------------------------------------------------------------------------------------|
-| Ice                | Interfaces and exceptions provided for interop with [Ice] applications. |
-| IceRpc             | Types provided by all IceRPC implementations. These types are IceRPC-specific.     |
-| IceRpc/**/Internal | Types used by IceRPC implementations to implement the [ice][ice-protocol] protocol, the [icerpc][icerpc-protocol] protocol, the [Slic] protocol and more. These are internal IceRPC implementation details—applications built with IceRPC don't need to see these definitions.|
-| WellKnownTypes     | Custom types such as Uri and TimeStamp. These well-known types are RPC-independent.|
+[slice.toml](../../slice.toml) names the upstream revision and the files to vendor. To sync the files, run this from
+the repository root:
 
-The copy of record for these Slice files is the [icerpc-slice] repository. Each IceRPC implementation is
-expected to create its own read-only clone of these Slice files with `git subtree`. For example, the `slice` directory
-of the [icerpc-csharp] repository is a git subtree clone of icerpc-slice.
+```shell
+python build/sync-slice.py
+```
 
-[Ice]: https://github.com/zeroc-ice/ice
-[ice-protocol]: https://docs.icerpc.dev/icerpc/ice-protocol/protocol-frames
-[icerpc-csharp]: https://github.com/icerpc/icerpc-csharp/
-[icerpc-protocol]: https://docs.icerpc.dev/icerpc/icerpc-protocol/mapping-rpcs-to-streams
-[icerpc-slice]: https://github.com/icerpc/icerpc-slice
-[Slic]: https://docs.icerpc.dev/icerpc/slic-transport/protocol-frames
-[Slice]: https://docs.icerpc.dev/slice2
+To check that the files match upstream, add `--verify`. CI runs this check on every pull request.
+
+The script requires Python 3.11 or later.
