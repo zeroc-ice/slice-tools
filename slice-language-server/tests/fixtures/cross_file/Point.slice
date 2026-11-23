@@ -1,8 +1,0 @@
-// Copyright (c) ZeroC, Inc.
-
-module Fixture
-
-struct Point {
-    x: float32
-    y: float32
-}

@@ -2,11 +2,11 @@
 
 use crate::notifications::{self, ShowNotification, ShowNotificationParams};
 use crate::slice_project::SliceProject;
-use crate::utils::{convert_slice_path_to_uri, span_to_range};
+use crate::utils::{convert_slice_path_to_uri, span_to_location, span_to_range};
 
 use slicec::diagnostics::{AnnotatedDiagnostic, AnnotatedNote, DiagnosticLevel};
 use std::collections::HashMap;
-use tower_lsp::lsp_types::{DiagnosticRelatedInformation, DiagnosticSeverity, Location, NumberOrString, Url};
+use tower_lsp::lsp_types::{DiagnosticRelatedInformation, DiagnosticSeverity, NumberOrString, Url};
 use tower_lsp::Client;
 
 /// Publishes diagnostics for all files in the provided project.
@@ -92,11 +92,9 @@ fn try_into_lsp_diagnostic_related_information(
     note: &AnnotatedNote,
 ) -> Option<tower_lsp::lsp_types::DiagnosticRelatedInformation> {
     let span = note.snippet.as_ref()?.span.clone();
-    let uri = convert_slice_path_to_uri(&span.file)?;
-    let range = span_to_range(span);
 
     Some(DiagnosticRelatedInformation {
-        location: Location { uri, range },
+        location: span_to_location(span)?,
         message: note.message.clone(),
     })
 }

@@ -1,8 +1,0 @@
-// Copyright (c) ZeroC, Inc.
-
-module Fixture
-
-struct Circle {
-    center: Point
-    radius: float32
-}
