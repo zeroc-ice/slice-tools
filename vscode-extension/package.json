@@ -117,18 +117,21 @@
     "make-readonly": "echo \"Making /slice readonly for distribution\" && run-script-os",
     "make-readonly:nix": "chmod -R a-w ./slice",
     "make-readonly:win32": "attrib +r /s /d /l .\\slice\\*",
+    "sync-syntaxes": "node -e \"require('fs').cpSync('../syntaxes', 'syntaxes', { recursive: true })\"",
     "postinstall": "cd client && npm install",
+    "precompile": "npm run sync-syntaxes",
+    "prewatch": "npm run sync-syntaxes",
     "test-compile": "tsc -p ./",
-    "vscode:prepublish": "npm run make-readonly && npm run esbuild-base -- --minify",
+    "vscode:prepublish": "npm run sync-syntaxes && npm run make-readonly && npm run esbuild-base -- --minify",
     "watch": "tsc -b -w"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "^25.0.3",
-    "esbuild": "^0.27.2",
-    "eslint": "^9.39.2",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
     "mocha": "^12.0.3",
     "run-script-os": "^1.1.6",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   }
 }
