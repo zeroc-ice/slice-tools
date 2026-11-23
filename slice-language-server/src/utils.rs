@@ -58,6 +58,14 @@ pub fn span_to_range(span: Span) -> Range {
     Range::new(start, end)
 }
 
+/// Converts a [`slicec::slice_file::Span`] into a [`tower_lsp::lsp_types::Location`] in the span's file, or `None` if
+/// that file's path isn't absolute.
+pub fn span_to_location(span: Span) -> Option<tower_lsp::lsp_types::Location> {
+    let uri = convert_slice_path_to_uri(&span.file)?;
+    let range = span_to_range(span);
+    Some(tower_lsp::lsp_types::Location { uri, range })
+}
+
 /// Converts a [`tower_lsp::lsp_types::Position`] into a [`slicec::slice_file::Location`].
 pub fn position_to_location(position: Position) -> Location {
     let row = (position.line + 1) as usize;
@@ -79,5 +87,26 @@ mod tests {
 
         // Assert
         assert_eq!(range, Range::new(Position::new(0, 0), Position::new(2, 7)));
+    }
+
+    #[test]
+    fn span_to_location_points_into_the_span_file() {
+        // Arrange
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Point.slice");
+        let span = Span::new(
+            Location { row: 1, col: 1 },
+            Location { row: 1, col: 6 },
+            path.to_str().unwrap(),
+        );
+
+        // Act
+        let location = span_to_location(span);
+
+        // Assert
+        let expected = tower_lsp::lsp_types::Location {
+            uri: Url::from_file_path(&path).unwrap(),
+            range: Range::new(Position::new(0, 0), Position::new(0, 5)),
+        };
+        assert_eq!(location, Some(expected));
     }
 }

@@ -13,7 +13,7 @@ use tokio::sync::Mutex;
 use tower_lsp::jsonrpc::Error;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
-use utils::{convert_slice_path_to_uri, span_to_range, url_to_sanitized_file_path};
+use utils::{convert_slice_path_to_uri, span_to_location, url_to_sanitized_file_path};
 
 mod configuration;
 mod diagnostic_handler;
@@ -231,12 +231,8 @@ impl LanguageServer for SliceLanguageServer {
             files
                 .get(&file_path)
                 .and_then(|file| get_definition_span(file, position))
-                .map(|location| {
-                    GotoDefinitionResponse::Scalar(Location {
-                        uri: uri.clone(),
-                        range: span_to_range(location),
-                    })
-                })
+                .and_then(span_to_location)
+                .map(GotoDefinitionResponse::Scalar)
         }))
     }
 
