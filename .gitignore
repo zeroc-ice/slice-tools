@@ -3,6 +3,7 @@ node_modules
 out
 .DS_Store
 target
+/icefmt/build
 
 # Copied from the top-level 'syntaxes' folder when packaging the extension.
 /vscode-extension/syntaxes
