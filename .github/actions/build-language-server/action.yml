@@ -7,8 +7,7 @@ inputs:
     default: ""
   target:
     description: "The target platform"
-    required: false
-    default: ""
+    required: true
 
 runs:
   using: "composite"
